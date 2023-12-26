@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: ['*']
+
+permissions:
+  contents: read
+
+jobs:
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.11.0  # most recent stable
+
+      - name: Check formatting
+        run: zig fmt --check .
+
+  test:
+    name: Test / Zig ${{ matrix.zig-version }}
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.allow-fail }}
+    strategy:
+      matrix:
+        zig-version: ['0.11.0']
+        allow-fail: [false]
+        include:
+          - zig-version: master
+            allow-fail: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install kcov
+        run: |
+          URL=https://github.com/SimonKagstrom/kcov/releases/download/$KCOV_VERSION/kcov-amd64.tar.gz
+          curl -L "$URL" | sudo tar xvzf - -C /
+        env:
+          KCOV_VERSION: v42
+
+      - name: Set up Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: ${{ matrix.zig-version }}
+
+      - name: Run tests
+        run: |
+          zig build test -Dtest-cover
+
+      - name: Coverage
+        uses: codecov/codecov-action@v3
