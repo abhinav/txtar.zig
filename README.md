@@ -41,6 +41,12 @@ And add it to the executables that need it:
     exe.addModule("txtar", txtar.module("txtar"));
 ```
 
+Finally, in your code:
+
+```zig
+const txtar = @import("txtar");
+```
+
 These instructions may grow out of date as the Zig package management tooling
 and APIs evolve.
 
