@@ -1,11 +1,25 @@
 # txtar.zig 🗃️
 
-txtar.zig is a Zig library for interfacing with the [txtar format](#txtar-format).
+txtar.zig is a Zig library for interfacing with the [txtar format](#the-txtar-format).
+
+## Installation
+
+Use `zig fetch --save` to pull a version of the library
+into your build.zig.zon.
+
+```bash
+zig fetch --save "https://github.com/abhinav/txtar.zig/archive/0.1.0.tar.gz"
+```
+
+This requires at least Zig 0.11.
 
 ## API reference
 
 Auto-generated API Reference for the library is available at
 <https://abhinav.github.io/txtar.zig/>.
+
+Note that Zig's autodoc is currently in beta.
+Some links may be broken in the generated website.
 
 ## The txtar format
 
