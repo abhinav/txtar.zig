@@ -2,17 +2,6 @@
 
 txtar.zig is a Zig library for interfacing with the [txtar format](#the-txtar-format).
 
-## Installation
-
-Use `zig fetch --save` to pull a version of the library
-into your build.zig.zon.
-
-```bash
-zig fetch --save "https://github.com/abhinav/txtar.zig/archive/0.1.0.tar.gz"
-```
-
-This requires at least Zig 0.11.
-
 ## API reference
 
 Auto-generated API Reference for the library is available at
@@ -20,6 +9,40 @@ Auto-generated API Reference for the library is available at
 
 Note that Zig's autodoc is currently in beta.
 Some links may be broken in the generated website.
+
+## Installation
+
+Use `zig fetch --save` to pull a version of the library
+into your build.zig.zon.
+(This requires at least Zig 0.11.)
+
+```bash
+zig fetch --save "https://github.com/abhinav/txtar.zig/archive/0.1.0.tar.gz"
+```
+
+Then, import the dependency in your build.zig:
+
+```zig
+pub fn build(b: *std.Build) void {
+    // ...
+
+    const txtar = b.dependency("txtar", .{
+        .target = target,
+        .optimize = optimize,
+    });
+```
+
+And add it to the executables that need it:
+
+```zig
+    const exe = b.addExecutable(.{
+        // ...
+    });
+    exe.addModule("txtar", txtar.module("txtar"));
+```
+
+These instructions may grow out of date as the Zig package management tooling
+and APIs evolve.
 
 ## The txtar format
 
