@@ -1,4 +1,4 @@
-# txtar.zig 🗃️
+# 🗃️ txtar.zig [![CI](https://github.com/abhinav/txtar.zig/actions/workflows/ci.yml/badge.svg)](https://github.com/abhinav/txtar.zig/actions/workflows/ci.yml) [![codecov](https://codecov.io/github/abhinav/txtar.zig/graph/badge.svg?token=PLIZOORGHS)](https://codecov.io/github/abhinav/txtar.zig)
 
 txtar.zig is a Zig library for interfacing with the [txtar format](#the-txtar-format).
 
