@@ -44,6 +44,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install kcov
+        if: matrix.os == 'ubuntu-latest'
         run: |
           URL=https://github.com/SimonKagstrom/kcov/releases/download/$KCOV_VERSION/kcov-amd64.tar.gz
           curl -L "$URL" | sudo tar xvzf - -C /
@@ -55,9 +56,15 @@ jobs:
         with:
           version: ${{ matrix.zig-version }}
 
-      - name: Run tests
+      - name: Run tests (Linux)
+        if: matrix.os == 'ubuntu-latest'
         run: |
           zig build test -Dtest-cover
+      - name: Run tests (Windows)
+        if: matrix.os != 'ubuntu-latest'
+        run: |
+          zig build test
 
       - name: Coverage
+        if: matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v3
