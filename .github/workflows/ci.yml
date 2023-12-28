@@ -9,6 +9,9 @@ on:
 permissions:
   contents: read
 
+env:
+  KCOV_VERSION: 42
+
 jobs:
 
   lint:
@@ -43,12 +46,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install kcov
+      - name: Install cached kcov
+        id: kcov
+        uses: actions/cache@v3
+        with:
+          path: ~/kcov
+          key: ${{ runner.os }}-kcov-${{ env.KCOV_VERSION }}
+
+      - name: Build kcov
+        if: steps.kcov.outputs.cache-hit != 'true'
+        shell: bash
         run: |
-          URL=https://github.com/SimonKagstrom/kcov/releases/download/$KCOV_VERSION/kcov-amd64.tar.gz
-          curl -L "$URL" | sudo tar xvzf - -C /
-        env:
-          KCOV_VERSION: v42
+          mkdir ~/src ~/kcov
+          URL=https://github.com/SimonKagstrom/kcov/archive/refs/tags/v$KCOV_VERSION.tar.gz
+          curl -L "$URL" | tar xvzf - -C ~/src
+          cd ~/src/kcov-"$KCOV_VERSION"
+          # Hack:
+          # Workaround for undefined symbol "assert" while building on macOS.
+          sed -i -e '/ assert(/d' src/engines/mach-engine.cc
+
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$HOME/kcov"  .
+          make
+          make install
+
+      - name: Add kcov to PATH
+        shell: bash
+        run: |
+          echo "$HOME/kcov/bin" >> "$GITHUB_PATH"
 
       - name: Set up Zig
         uses: goto-bus-stop/setup-zig@v2
@@ -56,8 +80,7 @@ jobs:
           version: ${{ matrix.zig-version }}
 
       - name: Run tests
-        run: |
-          zig build test -Dtest-cover
+        run: zig build test -Dtest-cover
 
       - name: Coverage
         uses: codecov/codecov-action@v3
