@@ -26,15 +26,17 @@ jobs:
         run: zig fmt --check .
 
   test:
-    name: Test / Zig ${{ matrix.zig-version }}
-    runs-on: ubuntu-latest
+    name: Test / Zig ${{ matrix.zig-version }} / ${{ matrix.os}}
+    runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.allow-fail }}
     strategy:
       matrix:
         zig-version: ['0.11.0']
+        os: [ubuntu-latest, windows-latest]
         allow-fail: [false]
         include:
           - zig-version: master
+            os: ubuntu-latest
             allow-fail: true
 
     steps:
