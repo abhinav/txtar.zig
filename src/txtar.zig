@@ -61,7 +61,7 @@
 //! const archive = try txtar.Archive.parse(allocator, src);
 //! defer archive.deinit();
 //!
-//! for (archive.files) |file| {
+//! for (archive.files.items()) |file| {
 //!    // ...
 //! }
 //! ```
@@ -78,6 +78,31 @@
 //!    .contents = "Hello, world!\n",
 //! });
 //! ```
+//!
+//! ## Extracting txtar files
+//!
+//! This package supports a few different ways of *safely*
+//! extracting txtar files into directories:
+//! `Archive.extract` and `Iterator.extract` provide a higher-level API,
+//! while `Extractor` provides a more direct interface.
+//!
+//! The usage for `Archive.extract` and `Iterator.extract` is similar:
+//!
+//! ```
+//! const archive = // ...
+//! archive.extract(allocator, "path/to/dir");
+//!
+//! var iter = // ...
+//! iter.extract(allocator, "path/to/dir");
+//! ```
+//!
+//! Whereas with `Extractor`, you must manually iterate over the files:
+//!
+//! ```
+//! var extractor = try txtar.Extractor.init(allocator, "path/to/dir");
+//! try extractor.writeFile(txtar.File{ ... });
+//! try extractor.writeFile(txtar.File{ ... });
+//! ```
 
 const std = @import("std");
 
@@ -85,6 +110,7 @@ pub const Iterator = @import("./Iterator.zig");
 pub const Formatter = @import("./format.zig").Formatter;
 pub const File = @import("./File.zig");
 pub const Archive = @import("./Archive.zig");
+pub const Extractor = @import("./Extractor.zig");
 
 /// Constructs a Formatter from a writer with a known type.
 ///
@@ -142,6 +168,8 @@ test Iterator {
 }
 
 test Archive {
+    const allocator = std.testing.allocator;
+
     const src =
         \\Optional comment section
         \\before the first file.
@@ -151,24 +179,34 @@ test Archive {
         \\Cleaning up the bar.
     ;
 
-    const archive = try Archive.parse(std.testing.allocator, src);
+    // Parse the archive.
+    const archive = try Archive.parse(allocator, src);
     defer archive.deinit();
 
+    // The archive comment is accessible.
     try std.testing.expectEqualStrings(
         "Optional comment section\n" ++
             "before the first file.\n",
         archive.comment,
     );
 
-    try std.testing.expectEqual(archive.files.len, 2);
+    // Set up a temporary directory.
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const temp_dir_path = try temp_dir.dir.realpathAlloc(allocator, ".");
+    defer allocator.free(temp_dir_path);
 
-    const foo = archive.files[0];
-    try std.testing.expectEqualStrings("foo.txt", foo.name);
-    try std.testing.expectEqualStrings("Setting up the foo.\n", foo.contents);
+    // Extract the files into the temporary directory.
+    try archive.extract(allocator, temp_dir_path);
 
-    const baz = archive.files[1];
-    try std.testing.expectEqualStrings("bar/baz.txt", baz.name);
-    try std.testing.expectEqualStrings("Cleaning up the bar.", baz.contents);
+    var buffer: [128]u8 = undefined;
+
+    // Read the files and verify their contents.
+    const foo = try temp_dir.dir.readFile("foo.txt", &buffer);
+    try std.testing.expectEqualStrings("Setting up the foo.\n", foo);
+
+    const baz = try temp_dir.dir.readFile("bar/baz.txt", &buffer);
+    try std.testing.expectEqualStrings("Cleaning up the bar.", baz);
 }
 
 test {

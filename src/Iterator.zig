@@ -5,6 +5,7 @@ const std = @import("std");
 
 const Iterator = @This();
 const File = @import("./File.zig");
+const Extractor = @import("./Extractor.zig");
 
 /// Comment section at the top of the txtar file.
 /// This includes the newline that the comment section ends with.
@@ -59,6 +60,47 @@ pub fn next(self: *Iterator) ?File {
         .name = name,
         .contents = self.raw[body_start..body_end],
     };
+}
+
+/// Extracts the remaining contents of an Iterator to a directory,
+/// consuming the iterator in the process.
+///
+/// Paths in the archive are relative to the destination directory.
+/// They are not allowed to escape the destination directory with use of `../`.
+pub fn extract(self: *Iterator, alloc: std.mem.Allocator, dir: []const u8) !void {
+    const extractor = Extractor.init(alloc, dir);
+    while (self.next()) |file| {
+        try extractor.writeFile(file);
+    }
+}
+
+test extract {
+    const allocator = std.testing.allocator;
+
+    // Set up a temporary directory.
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const temp_dir_path = try temp_dir.dir.realpathAlloc(allocator, ".");
+    defer allocator.free(temp_dir_path);
+
+    var iter = Iterator.parse(
+        \\-- foo/bar.txt --
+        \\setting up the bar
+        \\-- baz/qux.txt --
+        \\cleaning up the qux
+        \\
+    );
+
+    try iter.extract(allocator, temp_dir_path);
+
+    var buffer: [128]u8 = undefined;
+
+    // Verify that the files were extracted.
+    const bar = try temp_dir.dir.readFile("foo/bar.txt", buffer[0..]);
+    try std.testing.expectEqualStrings("setting up the bar\n", bar);
+
+    const qux = try temp_dir.dir.readFile("baz/qux.txt", buffer[0..]);
+    try std.testing.expectEqualStrings("cleaning up the qux\n", qux);
 }
 
 // Information about a single file in the archive.
