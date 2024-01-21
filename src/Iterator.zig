@@ -64,11 +64,26 @@ pub fn next(self: *Iterator) ?File {
 
 /// Extracts the remaining contents of an Iterator to a directory,
 /// consuming the iterator in the process.
+/// The destination directory will be created if it does not exist.
 ///
 /// Paths in the archive are relative to the destination directory.
 /// They are not allowed to escape the destination directory with use of `../`.
-pub fn extract(self: *Iterator, alloc: std.mem.Allocator, dir: []const u8) !void {
-    const extractor = Extractor.init(alloc, dir);
+pub fn extract(self: *Iterator, alloc: std.mem.Allocator, dest: []const u8) !void {
+    var dir = try std.fs.cwd().makeOpenPath(dest, .{});
+    defer dir.close();
+
+    return self.extractDir(alloc, dir);
+}
+
+/// Extracts the remaining contents of an Iterator to a directory,
+/// consuming the iterator in the process.
+///
+/// Paths in the archive are relative to the destination directory.
+/// They are not allowed to escape the destination directory with use of `../`.
+pub fn extractDir(self: *Iterator, alloc: std.mem.Allocator, dir: std.fs.Dir) !void {
+    const extractor = try Extractor.init(alloc, dir);
+    defer extractor.deinit();
+
     while (self.next()) |file| {
         try extractor.writeFile(file);
     }

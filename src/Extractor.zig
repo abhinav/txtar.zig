@@ -26,11 +26,24 @@ const File = @import("./File.zig");
 allocator: std.mem.Allocator,
 
 /// Destination directory.
-dir: []const u8,
+dir: std.fs.Dir,
+
+/// Absolute path to destination directory.
+dir_path: []const u8,
 
 /// Builds a new Extractor that will write to the given directory.
-pub fn init(allocator: std.mem.Allocator, dir: []const u8) Extractor {
-    return .{ .allocator = allocator, .dir = dir };
+/// The extractor must be released with `deinit`.
+pub fn init(allocator: std.mem.Allocator, dir: std.fs.Dir) !Extractor {
+    const dir_path = try dir.realpathAlloc(allocator, ".");
+    return .{
+        .allocator = allocator,
+        .dir = dir,
+        .dir_path = dir_path,
+    };
+}
+
+pub fn deinit(self: *const Extractor) void {
+    self.allocator.free(self.dir_path);
 }
 
 /// Errors that may occur while extracting.
@@ -51,15 +64,15 @@ const FSError = std.os.MakeDirError || std.fs.File.OpenError || std.fs.File.Writ
 /// If the file attempts to traverse outside the destination directory,
 /// returns error.PathTraversal.
 pub fn writeFile(self: *const Extractor, f: File) WriteError!void {
-    const path = try std.fs.path.resolve(self.allocator, &.{ self.dir, f.name });
-    defer self.allocator.free(path);
+    const resolved_path = try std.fs.path.resolve(self.allocator, &.{ self.dir_path, f.name });
+    defer self.allocator.free(resolved_path);
+    if (!isDescendant(self.dir_path, resolved_path)) return error.PathTraversal;
 
-    if (!isDescendant(self.dir, path)) return error.PathTraversal;
+    if (std.fs.path.dirname(f.name)) |parent_dir| {
+        try self.dir.makePath(parent_dir);
+    }
 
-    const cwd = std.fs.cwd();
-    try cwd.makePath(std.fs.path.dirname(path) orelse unreachable);
-
-    const file = try cwd.createFile(path, .{});
+    const file = try self.dir.createFile(f.name, .{});
     defer file.close();
     try file.writer().writeAll(f.contents);
 }
@@ -67,29 +80,21 @@ pub fn writeFile(self: *const Extractor, f: File) WriteError!void {
 test "writeFile allocation error" {
     const allocator = std.testing.failing_allocator;
 
-    const extractor = Extractor.init(allocator, "foo"); // won't be created
-    const got = extractor.writeFile(.{
-        .name = "bar/baz/qux",
-        .contents = "quux",
-    });
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
 
+    const got = Extractor.init(allocator, temp_dir.dir);
     try std.testing.expectError(error.OutOfMemory, got);
-
-    // Verify that the file wasn't created.
-    const cwd = std.fs.cwd();
-    try std.testing.expectError(error.FileNotFound, cwd.statFile("foo/bar/baz/qux"));
 }
 
 test "writeFile traversal error" {
     const allocator = std.testing.allocator;
 
-    // Set up a temporary directory.
     var temp_dir = std.testing.tmpDir(.{});
     defer temp_dir.cleanup();
-    const temp_dir_path = try temp_dir.dir.realpathAlloc(allocator, ".");
-    defer allocator.free(temp_dir_path);
 
-    const extractor = Extractor.init(allocator, temp_dir_path);
+    const extractor = try Extractor.init(allocator, temp_dir.dir);
+    defer extractor.deinit();
 
     const tests = [_][]const u8{
         "foo/../../bar",

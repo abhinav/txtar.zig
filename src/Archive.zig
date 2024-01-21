@@ -75,7 +75,19 @@ pub fn deinit(self: Archive) void {
 /// Paths in the archive are relative to the destination directory.
 /// They are not allowed to escape the destination directory with use of `../`.
 pub fn extract(self: Archive, alloc: std.mem.Allocator, dest: []const u8) !void {
-    const extractor = Extractor.init(alloc, dest);
+    var dir = try std.fs.cwd().makeOpenPath(dest, .{});
+    defer dir.close();
+
+    return self.extractDir(alloc, dir);
+}
+
+/// Extracts all files in the Archive to the given directory.
+///
+/// Paths in the archive are relative to the destination directory.
+/// They are not allowed to escape the destination directory with use of `../`.
+pub fn extractDir(self: Archive, alloc: std.mem.Allocator, dir: std.fs.Dir) !void {
+    const extractor = try Extractor.init(alloc, dir);
+    defer extractor.deinit();
 
     for (self.files.items()) |file| {
         try extractor.writeFile(file);

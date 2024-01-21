@@ -99,7 +99,9 @@
 //! Whereas with `Extractor`, you must manually iterate over the files:
 //!
 //! ```
-//! var extractor = try txtar.Extractor.init(allocator, "path/to/dir");
+//! const extractor = try txtar.Extractor.init(allocator, dir);
+//! defer extractor.deinit();
+//!
 //! try extractor.writeFile(txtar.File{ ... });
 //! try extractor.writeFile(txtar.File{ ... });
 //! ```
