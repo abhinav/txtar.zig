@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.3.0 - 2024-01-21
+### Added
+- `Iterator.extractDir` and `Archive.extractDir` to extract to an open `std.fs.Dir`.
+
+### Changed
+- Extractor now operates on `std.fs.Dir` instead of `[]const u8`.
+  As a result of this change, `Extractor.init` may return an error,
+  and a call to the new `Extractor.deinit` method is required for cleanup.
+
 ## 0.2.1 - 2024-01-01
 ### Fixed
 - Fix build.zig.zon for release.
