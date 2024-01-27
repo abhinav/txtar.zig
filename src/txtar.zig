@@ -68,12 +68,12 @@
 //!
 //! ## Writing txtar files
 //!
-//! Use `newFormatter` to write txtar files to a writer.
+//! Use `new_formatter` to write txtar files to a writer.
 //!
 //! ```
 //! var file: std.fs.File = // ...
-//! var f = try txtar.newFormatter(file.writer(), "This is a comment.");
-//! try f.writeFile(.{
+//! var f = try txtar.new_formatter(file.writer(), "This is a comment.");
+//! try f.write_file(.{
 //!    .name = "foo/bar.txt",
 //!    .contents = "Hello, world!\n",
 //! });
@@ -102,8 +102,8 @@
 //! const extractor = try txtar.Extractor.init(allocator, dir);
 //! defer extractor.deinit();
 //!
-//! try extractor.writeFile(txtar.File{ ... });
-//! try extractor.writeFile(txtar.File{ ... });
+//! try extractor.write_file(txtar.File{ ... });
+//! try extractor.write_file(txtar.File{ ... });
 //! ```
 
 const std = @import("std");
@@ -117,17 +117,17 @@ pub const Extractor = @import("./Extractor.zig");
 /// Constructs a Formatter from a writer with a known type.
 ///
 /// This can be more convenient than instantiating the Formatter type directly.
-pub fn newFormatter(writer: anytype, comment: ?[]const u8) !Formatter(@TypeOf(writer)) {
+pub fn new_formatter(writer: anytype, comment: ?[]const u8) !Formatter(@TypeOf(writer)) {
     return try Formatter(@TypeOf(writer)).init(writer, comment);
 }
 
-test newFormatter {
+test new_formatter {
     var buf = std.ArrayList(u8).init(std.testing.allocator);
     defer buf.deinit();
 
-    var f = try newFormatter(buf.writer(), "comment");
-    try f.writeFile(.{ .name = "foo.txt", .contents = "foo" });
-    try f.writeFile(.{ .name = "bar.txt", .contents = "bar\n" });
+    var f = try new_formatter(buf.writer(), "comment");
+    try f.write_file(.{ .name = "foo.txt", .contents = "foo" });
+    try f.write_file(.{ .name = "bar.txt", .contents = "bar\n" });
 
     try std.testing.expectEqualStrings(
         \\comment

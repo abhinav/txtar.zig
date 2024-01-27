@@ -72,7 +72,7 @@ pub fn extract(self: *Iterator, alloc: std.mem.Allocator, dest: []const u8) !voi
     var dir = try std.fs.cwd().makeOpenPath(dest, .{});
     defer dir.close();
 
-    return self.extractDir(alloc, dir);
+    return self.extract_dir(alloc, dir);
 }
 
 /// Extracts the remaining contents of an Iterator to a directory,
@@ -80,12 +80,12 @@ pub fn extract(self: *Iterator, alloc: std.mem.Allocator, dest: []const u8) !voi
 ///
 /// Paths in the archive are relative to the destination directory.
 /// They are not allowed to escape the destination directory with use of `../`.
-pub fn extractDir(self: *Iterator, alloc: std.mem.Allocator, dir: std.fs.Dir) !void {
+pub fn extract_dir(self: *Iterator, alloc: std.mem.Allocator, dir: std.fs.Dir) !void {
     const extractor = try Extractor.init(alloc, dir);
     defer extractor.deinit();
 
     while (self.next()) |file| {
-        try extractor.writeFile(file);
+        try extractor.write_file(file);
     }
 }
 

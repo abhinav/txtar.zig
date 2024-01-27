@@ -11,7 +11,7 @@
 //! For example:
 //!
 //! ```
-//! extractor.writeFile(txtar.File{
+//! extractor.write_file(txtar.File{
 //!   .name = "../foo.txt",
 //!   .contents = "...",
 //! });
@@ -63,10 +63,10 @@ const FSError = std.os.MakeDirError || std.fs.File.OpenError || std.fs.File.Writ
 ///
 /// If the file attempts to traverse outside the destination directory,
 /// returns error.PathTraversal.
-pub fn writeFile(self: *const Extractor, f: File) WriteError!void {
+pub fn write_file(self: *const Extractor, f: File) WriteError!void {
     const resolved_path = try std.fs.path.resolve(self.allocator, &.{ self.dir_path, f.name });
     defer self.allocator.free(resolved_path);
-    if (!isDescendant(self.dir_path, resolved_path)) return error.PathTraversal;
+    if (!is_descendant(self.dir_path, resolved_path)) return error.PathTraversal;
 
     if (std.fs.path.dirname(f.name)) |parent_dir| {
         try self.dir.makePath(parent_dir);
@@ -77,7 +77,7 @@ pub fn writeFile(self: *const Extractor, f: File) WriteError!void {
     try file.writer().writeAll(f.contents);
 }
 
-test "writeFile allocation error" {
+test "write_file allocation error" {
     const allocator = std.testing.failing_allocator;
 
     var temp_dir = std.testing.tmpDir(.{});
@@ -87,7 +87,7 @@ test "writeFile allocation error" {
     try std.testing.expectError(error.OutOfMemory, got);
 }
 
-test "writeFile traversal error" {
+test "write_file traversal error" {
     const allocator = std.testing.allocator;
 
     var temp_dir = std.testing.tmpDir(.{});
@@ -103,11 +103,11 @@ test "writeFile traversal error" {
         "../../../foo",
     };
     for (tests) |name| {
-        const got = extractor.writeFile(.{
+        const got = extractor.write_file(.{
             .name = name,
             .contents = "quux",
         });
-        errdefer std.debug.print("writeFile({s}) should fail\n", .{name});
+        errdefer std.debug.print("write_file({s}) should fail\n", .{name});
 
         try std.testing.expectError(error.PathTraversal, got);
     }
@@ -115,7 +115,7 @@ test "writeFile traversal error" {
 
 // Reports whether child is a descendant of parent.
 // Must not be equal to parent.
-fn isDescendant(p: []const u8, child: []const u8) bool {
+fn is_descendant(p: []const u8, child: []const u8) bool {
     // Drop trailing slash from parent.
     const parent = if (p.len > 0 and p[p.len - 1] == std.fs.path.sep)
         p[0 .. p.len - 1]
@@ -130,7 +130,7 @@ fn isDescendant(p: []const u8, child: []const u8) bool {
         child[parent.len] == std.fs.path.sep;
 }
 
-test "isDescendant" {
+test "is_descendant" {
     const sep = std.fs.path.sep_str;
 
     const tests = [_]struct {
@@ -144,8 +144,8 @@ test "isDescendant" {
     };
 
     for (tests) |tt| {
-        const got = isDescendant(tt.parent, tt.child);
-        errdefer std.debug.print("isDescendant({s}, {s}) should be {}\n", .{ tt.parent, tt.child, tt.want });
+        const got = is_descendant(tt.parent, tt.child);
+        errdefer std.debug.print("is_descendant({s}, {s}) should be {}\n", .{ tt.parent, tt.child, tt.want });
         try std.testing.expectEqual(got, tt.want);
     }
 }
