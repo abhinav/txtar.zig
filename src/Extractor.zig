@@ -55,7 +55,7 @@ pub const WriteError = error{
     PathTraversal,
 } || std.mem.Allocator.Error || FSError;
 
-const FSError = std.os.MakeDirError || std.fs.File.OpenError || std.fs.File.WriteError;
+const FSError = std.posix.MakeDirError || std.fs.File.OpenError || std.fs.File.WriteError;
 
 /// Writes the given file to the destination directory,
 /// creating any missing parent directories,
