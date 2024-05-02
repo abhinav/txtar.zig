@@ -1,5 +1,12 @@
 .{
     .name = "txtar",
     .version = "0.4.0",
-    .paths = .{"."},
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "CHANGELOG.md",
+        "LICENSE",
+        "README.md",
+        "src",
+    },
 }
