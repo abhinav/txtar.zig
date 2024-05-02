@@ -78,19 +78,19 @@ pub fn extract(self: Archive, alloc: std.mem.Allocator, dest: []const u8) !void 
     var dir = try std.fs.cwd().makeOpenPath(dest, .{});
     defer dir.close();
 
-    return self.extract_dir(alloc, dir);
+    return self.extractDir(alloc, dir);
 }
 
 /// Extracts all files in the Archive to the given directory.
 ///
 /// Paths in the archive are relative to the destination directory.
 /// They are not allowed to escape the destination directory with use of `../`.
-pub fn extract_dir(self: Archive, alloc: std.mem.Allocator, dir: std.fs.Dir) !void {
+pub fn extractDir(self: Archive, alloc: std.mem.Allocator, dir: std.fs.Dir) !void {
     const extractor = try Extractor.init(alloc, dir);
     defer extractor.deinit();
 
     for (self.files.items()) |file| {
-        try extractor.write_file(file);
+        try extractor.writeFile(file);
     }
 }
 
