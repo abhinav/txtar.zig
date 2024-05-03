@@ -11,12 +11,19 @@ pub fn build(b: *std.Build) void {
         "Output directory for coverage data",
     ) orelse b.pathFromRoot("cover");
 
-    _ = b.addModule("txtar", .{
+    const txtar = b.addModule("txtar", .{
         .root_source_file = .{ .path = "src/txtar.zig" },
     });
 
+    const lib = b.addStaticLibrary(.{
+        .name = "txtar",
+        .root_source_file = txtar.root_source_file orelse unreachable,
+        .target = target,
+        .optimize = optimize,
+    });
+
     const unit_tests = b.addTest(.{
-        .root_source_file = .{ .path = "src/txtar.zig" },
+        .root_source_file = txtar.root_source_file orelse unreachable,
         .target = target,
         .optimize = optimize,
     });
@@ -38,7 +45,7 @@ pub fn build(b: *std.Build) void {
 
     const docs_step = b.step("docs", "Generate docs.");
     const install_docs = b.addInstallDirectory(.{
-        .source_dir = unit_tests.getEmittedDocs(),
+        .source_dir = lib.getEmittedDocs(),
         .install_dir = .prefix,
         .install_subdir = "docs",
     });
