@@ -14,10 +14,9 @@ Some links may be broken in the generated website.
 
 Use `zig fetch --save` to pull a version of the library
 into your build.zig.zon.
-(This requires at least Zig 0.11.)
 
 ```bash
-zig fetch --save "https://github.com/abhinav/txtar.zig/archive/0.4.0.tar.gz"
+zig fetch --save "https://github.com/abhinav/txtar.zig/archive/0.5.0.tar.gz"
 ```
 
 Then, import the dependency in your build.zig:
