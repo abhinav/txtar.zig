@@ -12,7 +12,7 @@ pub fn build(b: *std.Build) void {
     ) orelse b.pathFromRoot("cover");
 
     const txtar = b.addModule("txtar", .{
-        .root_source_file = .{ .path = "src/txtar.zig" },
+        .root_source_file = b.path("src/txtar.zig"),
     });
 
     const lib = b.addStaticLibrary(.{
@@ -33,7 +33,7 @@ pub fn build(b: *std.Build) void {
 
     if (cover) {
         run_unit_tests.has_side_effects = true;
-        run_unit_tests.argv.insertSlice(0, &[_]std.Build.Step.Run.Arg{
+        run_unit_tests.argv.insertSlice(b.allocator, 0, &[_]std.Build.Step.Run.Arg{
             .{ .bytes = b.dupe("kcov") },
             .{ .bytes = b.fmt("--include-path={s}", .{b.pathFromRoot("src")}) },
             .{ .bytes = b.fmt("--strip-path={s}", .{b.pathFromRoot(".")}) },
