@@ -20,7 +20,7 @@ jobs:
 
       - uses: mlugg/setup-zig@v1
         with:
-          version: 0.13.0  # most recent stable
+          version: latest  # most recent stable
 
       - name: Check formatting
         run: zig fmt --check .
@@ -31,7 +31,7 @@ jobs:
     continue-on-error: ${{ matrix.allow-fail }}
     strategy:
       matrix:
-        zig-version: ['0.13.0']
+        zig-version: ['0.14.0']
         os: [ubuntu-latest, windows-latest]
         allow-fail: [false]
         include:
@@ -43,28 +43,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install kcov
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          URL=https://github.com/SimonKagstrom/kcov/releases/download/$KCOV_VERSION/kcov-amd64.tar.gz
-          curl -L "$URL" | sudo tar xvzf - -C /
-        env:
-          KCOV_VERSION: v42
-
       - name: Set up Zig
         uses: mlugg/setup-zig@v1
         with:
           version: ${{ matrix.zig-version }}
 
-      - name: Run tests (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          zig build test -Dtest-cover
-      - name: Run tests (Windows)
-        if: matrix.os != 'ubuntu-latest'
+      - name: Run tests
         run: |
           zig build test
-
-      - name: Coverage
-        if: matrix.os == 'ubuntu-latest'
-        uses: codecov/codecov-action@v5

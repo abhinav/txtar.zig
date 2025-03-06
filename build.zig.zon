@@ -1,5 +1,6 @@
 .{
-    .name = "txtar",
+    .name = .txtar,
+    .fingerprint = 0xf5eeb31b2052a191,
     .version = "0.5.0",
     .paths = .{
         "build.zig",
