@@ -1,7 +1,8 @@
 .{
     .name = .txtar,
     .fingerprint = 0xf5eeb31b2052a191,
-    .version = "0.5.0",
+    .version = "0.6.0",
+    .minimum_zig_version = "0.15.1",
     .paths = .{
         "build.zig",
         "build.zig.zon",

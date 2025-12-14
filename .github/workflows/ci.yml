@@ -31,7 +31,7 @@ jobs:
     continue-on-error: ${{ matrix.allow-fail }}
     strategy:
       matrix:
-        zig-version: ['0.14.0']
+        zig-version: ['0.15.2']
         os: [ubuntu-latest, windows-latest]
         allow-fail: [false]
         include:

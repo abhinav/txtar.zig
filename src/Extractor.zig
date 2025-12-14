@@ -55,7 +55,7 @@ pub const WriteError = error{
     PathTraversal,
 } || std.mem.Allocator.Error || FSError;
 
-const FSError = std.posix.MakeDirError || std.fs.File.OpenError || std.fs.File.WriteError;
+const FSError = std.posix.MakeDirError || std.fs.File.OpenError || std.Io.Writer.Error;
 
 /// Writes the given file to the destination directory,
 /// creating any missing parent directories,
@@ -74,7 +74,11 @@ pub fn writeFile(self: *const Extractor, f: File) WriteError!void {
 
     const file = try self.dir.createFile(f.name, .{});
     defer file.close();
-    try file.writer().writeAll(f.contents);
+
+    var buffer: [1024]u8 = undefined;
+    var writer = file.writer(&buffer);
+    try writer.interface.writeAll(f.contents);
+    try writer.interface.flush();
 }
 
 test "writeFile allocation error" {

@@ -50,8 +50,8 @@ pub fn Formatter(comptime Writer: type) type {
 test "file tests" {
     const alloc = std.testing.allocator;
 
-    for (File.tests) |tt| {
-        var buf = std.ArrayList(u8).init(alloc);
+    for (@import("./test_cases.zig").parse_tests) |tt| {
+        var buf = std.array_list.Managed(u8).init(alloc);
         defer buf.deinit();
 
         const w = buf.writer();

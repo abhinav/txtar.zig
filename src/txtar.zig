@@ -122,7 +122,7 @@ pub fn newFormatter(writer: anytype, comment: ?[]const u8) !Formatter(@TypeOf(wr
 }
 
 test newFormatter {
-    var buf = std.ArrayList(u8).init(std.testing.allocator);
+    var buf = std.array_list.Managed(u8).init(std.testing.allocator);
     defer buf.deinit();
 
     var f = try newFormatter(buf.writer(), "comment");
