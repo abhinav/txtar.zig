@@ -15,7 +15,7 @@ pub const FileList = union(enum) {
     /// The FileList is owned by the Archive.
     ///
     /// The Archive will free the memory when it is deinitialized.
-    owned: std.ArrayList(File),
+    owned: std.array_list.Managed(File),
 
     /// The FileList was borrowed.
     ///
@@ -50,7 +50,7 @@ files: FileList,
 ///
 /// Caller is responsible for calling `deinit` on the returned Archive.
 pub fn parse(alloc: std.mem.Allocator, src: []const u8) error{OutOfMemory}!Archive {
-    var file_list = std.ArrayList(File).init(alloc);
+    var file_list = std.array_list.Managed(File).init(alloc);
     errdefer file_list.deinit();
 
     var it = Iterator.parse(src);
@@ -124,7 +124,7 @@ test extract {
 }
 
 test "file tests" {
-    for (File.tests) |tt| {
+    for (@import("./test_cases.zig").parse_tests) |tt| {
         errdefer std.debug.print("src:\n----\n{s}\n----\n", .{tt.src});
 
         var archive = try Archive.parse(std.testing.allocator, tt.src);

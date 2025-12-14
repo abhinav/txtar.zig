@@ -13,19 +13,18 @@ pub fn build(b: *std.Build) void {
 
     const txtar = b.addModule("txtar", .{
         .root_source_file = b.path("src/txtar.zig"),
-    });
-
-    const lib = b.addStaticLibrary(.{
-        .name = "txtar",
-        .root_source_file = txtar.root_source_file orelse unreachable,
         .target = target,
         .optimize = optimize,
+    });
+
+    const lib = b.addLibrary(.{
+        .linkage = .static,
+        .name = "txtar",
+        .root_module = txtar,
     });
 
     const unit_tests = b.addTest(.{
-        .root_source_file = txtar.root_source_file orelse unreachable,
-        .target = target,
-        .optimize = optimize,
+        .root_module = txtar,
     });
 
     const test_step = b.step("test", "Run tests");

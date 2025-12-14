@@ -174,7 +174,7 @@ const FileHeader = struct {
 };
 
 test "file tests" {
-    for (File.tests) |tt| {
+    for (@import("./test_cases.zig").parse_tests) |tt| {
         errdefer std.debug.print("src:\n----\n{s}\n----\n", .{tt.src});
 
         var iter = Iterator.parse(tt.src);
