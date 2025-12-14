@@ -16,7 +16,7 @@ Use `zig fetch --save` to pull a version of the library
 into your build.zig.zon.
 
 ```bash
-zig fetch --save "https://github.com/abhinav/txtar.zig/archive/0.5.0.tar.gz"
+zig fetch --save "https://github.com/abhinav/txtar.zig/archive/0.6.0.tar.gz"
 ```
 
 Then, import the dependency in your build.zig:
